@@ -2,18 +2,7 @@ import typing
 from typing import Dict, List, Set, Tuple
 
 class GramaticaProbabilistica():
-    def __init__(self) -> None:
-        self.gramatica = None
-        self.regles_binaries = None
-        self.simbol_arrel = None
-        self.arbre_gramatical = None
-
-    def carregar_gramatica(self, normes_gramatica: Set, simbol_arrel: str = 'S') -> None:
-        """
-        Carreguem una gramàtica en forma normal de Chomsky (CNF).
-        :param normes_gramatica: Diccionari on les claus són no-terminals i els valors són llistes de produccions.
-        :param simbol_arrel: El símbol d'inici de la gramàtica (per defecte li posarem 'S').
-        """
+    def __init__(self, normes_gramatica: Set, simbol_arrel: str = 'S') -> None:
         self.gramatica = normes_gramatica
         self.regles_binaries = self._preprocessar_gramatica()
         self.simbol_arrel = simbol_arrel
@@ -41,7 +30,7 @@ class GramaticaProbabilistica():
                 for produccio, probabilitat in produccions:
                     # Comprovem les produccions terminals (A -> a)
                     if len(produccio) == 1 and produccio[0] == paraula:
-                        taula[col][col].add((no_terminal,probabilitat,(col, col)))
+                        taula[col][col].add({'no_terminal': no_terminal, 'probabilitat':probabilitat, 'coordenada': (col, col)})
         
         # Omplim la resta de la taula (longitud 2 a n)
         for n_fila in range(1, n):  # longitud de la subcadena
@@ -59,72 +48,16 @@ class GramaticaProbabilistica():
                     for no_terminal_diag in part_diag:
                         for no_termina_col in part_col:
                             # Comprovem les produccions binàries (A -> BC)
-                            clau = (no_terminal_diag[0], no_termina_col[0])
+                            clau = (no_terminal_diag['no_terminal'], no_termina_col['no_terminal'])
                             if clau in self.regles_binaries:
-                                for valor_no_terminal, probabilitat in self.regles_binaries[clau]:
-                                    # Comprovar si ja existeix aquest no-terminal en la cel·la
-                                    existeix = False
-                                    for tupla_existent in taula[diag][col]:
-                                        if tupla_existent[0] == valor_no_terminal:
-                                            # Si ja existeix, comparem probabilitats i mantenim el major
-                                            if probabilitat * no_terminal_diag[1] * no_termina_col[1] > tupla_existent[1]:
-                                                taula[diag][col].remove(tupla_existent)
-                                                break
-                                            else:
-                                                existeix = True
-                                                break
-                                    if not existeix:
-                                        taula[diag][col].add((valor_no_terminal, probabilitat * no_terminal_diag[1] * no_termina_col[1], (diag, col)))
+                                for clau_no_terminal, probabilitat in self.regles_binaries[clau]:
+                                    # Afegim el no-terminal a la taula
+                                    taula[diag][col].add({'no_terminal': clau_no_terminal, 'probabilitat': probabilitat * no_terminal_diag['probabilitat'] * no_termina_col['probabilitat'], 'coordenada': (diag, col)})
                                 
-        self.crear_arbre_gramatical(taula)
-        # Comprovem si el símbol arrel està present en alguna tupla de la cel·la final
-        for tupla in taula[0][n-1]:
-            if tupla[0] == self.simbol_arrel:
-                return True
-        return False
+
+        return self.simbol_arrel in taula[0][n-1]
     
-    def crear_arbre_gramatical(self, taula: List[List[Set[Tuple[str, float, Tuple[int, int]]]]]) -> None:
-        self.arbre_gramatical = self._construir_arbre(taula, 0, len(taula) - 1, self.simbol_arrel)
-    def _construir_arbre(self, taula: List[List[Set[Tuple[str, float, Tuple[int, int]]]]], inici: int, final: int, no_terminal: str) -> dict:
-        """
-        Construeix l'arbre gramatical a partir de la taula de CKY.
-        :param taula: Taula de CKY amb les produccions.
-        :param inici: Índex d'inici de la subcadena.
-        :param final: Índex final de la subcadena.
-        :param no_terminal: No-terminal que volem construir l'arbre.
-        :return: Retorna un diccionari representant l'arbre gramatical.
-        """
-        for tupla in taula[inici][final]:
-            if tupla[0] == no_terminal:
-                if inici == final:
-                    return {'no_terminal': no_terminal, 'simbol': tupla[2], 'fill': None}
-                else:
-                    for k in range(inici, final):
-                        fill_esquerra = self._construir_arbre(taula, inici, k, tupla[2][0])
-                        fill_dreta = self._construir_arbre(taula, k + 1, final, tupla[2][1])
-                        return {'no_terminal': no_terminal, 'simbol': tupla[2], 'fill': [fill_esquerra, fill_dreta]}
-        return None
-    def display_arbre(self):
-        """
-        Mostra l'arbre gramatical de manera llegible.
-        """
-        if self.arbre_gramatical is None:
-            print("No s'ha creat cap arbre gramatical.")
-            return
-        self._mostrar_arbre(self.arbre_gramatical, 0)
-    def _mostrar_arbre(self, node: dict, depth: int):
-        """
-        Mostra un node de l'arbre gramatical amb la seva profunditat.
-        :param node: Node de l'arbre a mostrar.
-        :param depth: Profunditat del node en l'arbre.
-        """
-        if node is None:
-            return
-        print("  " * depth + f"{node['no_terminal']} ({node['simbol']})")
-        if node['fill'] is not None:
-            for fill in node['fill']:
-                self._mostrar_arbre(fill, depth + 1)
-        
+                
     def _preprocessar_gramatica(self) -> Dict[Tuple[str, str], Set[tuple[str, float]]]:
         """ 
         Preprocessa la gramàtica per accés ràpid a les regles binàries.
@@ -257,17 +190,8 @@ class GramaticaProbabilistica():
         """ Retorna una representació en cadena de la gramàtica carregada. """
         if self.gramatica is None:
             return "No s'ha carregat cap gramàtica."
-        result = []
-        for no_terminal, produccions in self.gramatica.items():
-            prods = []
-            for produccio, probabilitat in produccions:
-                if isinstance(produccio, tuple):
-                    prod_str = ''.join(produccio)
-                else:
-                    prod_str = str(produccio)
-                prods.append(f"{prod_str} ({probabilitat})")
-            result.append(f"{no_terminal} -> {' | '.join(prods)}")
-        return "\n".join(result)
+        return "\n".join(f"{no_terminal} -> {', '.join(produccions)}" for no_terminal, produccions in self.gramatica.items())
+    
 
     
 
@@ -304,34 +228,3 @@ def create_grammar_g2():
         'C': [('DD', 0.8), ('b', 0.2)],
         'D': [('BA', 1.0)]
     }
-
-
-def main():
-    parser = GramaticaProbabilistica()
-    # Prova amb la primera gramàtica (G1)
-    print("\nProva amb la gramàtica G1")
-    print(parser)
-    parser.carregar_gramatica(create_grammar_g1(), simbol_arrel='S')
-
-    frases_g1 = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab"]
-    for frase in frases_g1:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_pcky(frase))
-    
-    # Prova amb la segona gramàtica (G2)
-    print("\nProva amb la gramàtica G2")
-    print(parser)
-    parser.carregar_gramatica(create_grammar_g2(),  simbol_arrel='S')
-
-    frases_g2 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb"]
-    for frase in frases_g2:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_pcky(frase))
-
-    parser.display_arbre()
-    
-    
-
-
-if __name__ == "__main__":
-    main()

@@ -1,18 +1,23 @@
+import typing
 from typing import Dict, List, Set, Tuple, Union
 
 class Gramatica():
     def __init__(self, normes_gramatica: Set, simbol_arrel: str = 'S') -> None:
+        # Convert string productions to list format for consistency
         self.gramatica = normes_gramatica
-        self.regles_binaries = self._preprocessar_regles_binaries()
+        self.regles_binaries = self._preprocessar_gramatica()
         self.simbol_arrel = simbol_arrel
         
     def algoritme_cky(self, frase: Union[List[str], str]) -> bool:
         """
         Analitza una frase gramaticalment utilitzant l'algoritme CKY.
         Omple la taula dinàmica de CKY amb la frase donada.
-        :param frase: Es tracta de la cadena que volem analitzar.
+        :param frase: Es tracta de la cadena que volem analitzar (str o List[str]).
         :return: Retorna un boolean que inidica si la cadena es pot derivar o no.
         """
+
+        if " " in frase:
+            frase = frase.split()
         
         if not frase:
             # Comprovem si la cadena buida és derivable (S -> ε)
@@ -30,12 +35,12 @@ class Gramatica():
                     # Comprovem les produccions terminals (A -> a)
                     if len(produccio) == 1 and produccio[0] == paraula:
                         taula[col][col].add(no_terminal)
+                        
         
         # Omplim la resta de la taula (longitud 2 a n)
         for n_fila in range(1, n):  # longitud de la subcadena
             for diag in range(n - n_fila):
                 col = diag + n_fila
-
                 # Provem totes les possibles divisions de la subcadena
                 for k in range(n_fila):
                     part_diag = taula[diag][diag + k]
@@ -51,10 +56,11 @@ class Gramatica():
                             clau = (no_terminal_diag, no_termina_col)
                             if clau in self.regles_binaries:
                                 taula[diag][col].update(self.regles_binaries[clau])
-
+  
         return self.simbol_arrel in taula[0][n-1]
+
                 
-    def _preprocessar_regles_binaries(self) -> Dict[Tuple[str, str], Set[str]]:
+    def _preprocessar_gramatica(self) -> Dict[Tuple[str, str], Set[str]]:
         """ 
         Preprocessa la gramàtica per accés ràpid a les regles binàries.
         Aquesta funció crea un diccionari on les claus són tuples (esq, dre) i els valors són conjunts de no-terminals.
@@ -96,7 +102,7 @@ class Gramatica():
         self._convertir_regles_terminals()
         
         # 5. Update binary rules after transformation
-        self.regles_binaries = self._preprocessar_regles_binaries()
+        self.regles_binaries = self._preprocessar_gramatica()
 
         return True
     
@@ -217,11 +223,11 @@ def create_grammar_g1():
     R → XB
     """
     return {
-        'S': ['a', 'XA', 'AX', 'b'],
-        'A': ['RB'],
-        'B': ['AX', 'b', 'a'],
-        'X': ['a'],
-        'R': ['XB']
+        'S': [['a'], ['X', 'A'], ['A', 'X'], ['b']],
+        'A': [['R', 'B']],
+        'B': [['A', 'X'], ['b'], ['a']],
+        'X': [['a']],
+        'R': [['X', 'B']]
     }
 
 def create_grammar_g2():
@@ -234,11 +240,11 @@ def create_grammar_g2():
     D → BA
     """
     return {
-        'S': ['AB', 'CD', 'CB', 'SS'],
-        'A': ['BC', 'a'],
-        'B': ['SC', 'b'],
-        'C': ['DD', 'b'],
-        'D': ['BA']
+        'S': [['A', 'B'], ['C', 'D'], ['C', 'B'], ['S', 'S']],
+        'A': [['B', 'C'], ['a']],
+        'B': [['S', 'C'], ['b']],
+        'C': [['D', 'D'], ['b']],
+        'D': [['B', 'A']]
     }
 
 def create_grammar_no_normalitzada():
@@ -251,11 +257,11 @@ def create_grammar_no_normalitzada():
     D → BAC
     """
     return {
-        'S': ['AB', 'CD', 'CB', 'SS'],
-        'A': ['BC', 'a'],
-        'B': ['C', 'b'],
-        'C': ['DD', 'b'],
-        'D': ['BAC']
+        'S': [['A', 'B'], ['C', 'D'], ['C', 'B'], ['S', 'S']],
+        'A': [['B', 'C'], ['a']],
+        'B': [['C'], ['b']],
+        'C': [['D', 'D'], ['b']],
+        'D': [['B', 'A', 'C']]
     }
 
 def create_grammar_oracio():
@@ -282,36 +288,31 @@ def create_grammar_oracio():
 
 
 def main():
-    gramatica_1 = Gramatica(create_grammar_g1(), simbol_arrel='S')
-    # Prova amb la primera gramàtica (G1)
-    print("\nProva amb la gramàtica G1")
-    print(gramatica_1)
-
-    frases_g1 = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab"]
-    for frase in frases_g1:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(gramatica_1.algoritme_cky(frase))
+    gramatica_4 = Gramatica(create_grammar_oracio(), simbol_arrel='S')
+    print("Grammar before CNF:")
+    print(gramatica_4)
+    print()
     
-    # Prova amb la segona gramàtica (G2)
+    gramatica_4.forma_normal_chomsky()
+    print("Grammar after CNF:")
+    print(gramatica_4)
+    print()
+    
+    print("Binary rules:")
+    print(gramatica_4.regles_binaries)
+    print()
+    
+    result = gramatica_4.algoritme_cky("els carbassots són els millors pardimolls")
+    print(f"Result: {result}")
+
     gramatica_2 = Gramatica(create_grammar_g2(), simbol_arrel='S')
     print("\nProva amb la gramàtica G2")
     print(gramatica_2)
-
+    gramatica_2.forma_normal_chomsky()
     frases_g2 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb"]
     for frase in frases_g2:
         print(f"Frase: '{frase}'", end=" -> ")
         print(gramatica_2.algoritme_cky(frase))
-    
-    gramatica_3 = Gramatica(create_grammar_no_normalitzada(), simbol_arrel='S')
-
-    gramatica_3.forma_normal_chomsky()
-    print(gramatica_3)
-
-    gramatica_4 = Gramatica(create_grammar_oracio(), simbol_arrel='S')
-    gramatica_4.forma_normal_chomsky()
-    print(gramatica_4)
-    print(gramatica_4.algoritme_cky(["els", "carbassots", "són", "els", "millors", "pardimolls"]))
-
 
 if __name__ == "__main__":
     main()
