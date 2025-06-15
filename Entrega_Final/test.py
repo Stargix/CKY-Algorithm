@@ -19,7 +19,7 @@ def test_cky():
     Funció per provar l'algoritme CKY amb diferents gramàtiques i frases.
     """
     
-    for gramatica, paraules in gramatiques_simples:
+    for gramatica, paraules in gramatiques_no_FNC:
         print(f"\nProva amb la gramàtica:\n")
         
         Gram = Gramatica(gramatica)
@@ -32,7 +32,7 @@ def test_fnc(cky=False):
     Funció per provar la conversió a Forma Normal de Chomsky (FNC) i l'algoritme CKY amb gramàtiques en FNC.
     """
     
-    for gramatica, paraules in gramatiques_simples:
+    for gramatica, paraules in gramatiques_no_FNC:
         print(f"\nProva amb la gramàtica en FNC:\n")
         
         Gram = Gramatica(gramatica)

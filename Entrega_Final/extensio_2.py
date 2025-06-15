@@ -5,7 +5,7 @@ class GramaticaProbabilistica():
     def __init__(self, normes_gramatica: Dict, simbol_arrel: str = 'S') -> None:
 
         self.gramatica = deepcopy(normes_gramatica)
-        self.forma_normal_chomsky()  # Transformem la gramàtica a FNC
+        self._forma_normal_chomsky()  # Transformem la gramàtica a FNC
         self.regles_binaries = self._preprocessar_gramatica()
         self.simbol_arrel = simbol_arrel
         self.arbre_gramatical = None
@@ -20,7 +20,7 @@ class GramaticaProbabilistica():
         
         if not frase:
             # Comprovem si la cadena buida és derivable (S -> ε)
-            return self._comprovar_derivacio_buida()
+            return self.__comprovar_derivacio_buida()
         
         n = len(frase)
         # Crea taula triangular buida (aprofitem la propietat triangular de la taula CKY i ens estalviem memòria innecessària)
@@ -94,12 +94,22 @@ class GramaticaProbabilistica():
                                                                         coord_dre))
                                     
         # Un cop omplerta la taula, creem l'arbre gramatical
-        self.crear_arbre_gramatical(taula)
+        self._crear_arbre_gramatical(taula)
         # Comprovem si el símbol arrel està present en alguna tupla de la cel·la final
         for tupla in taula[n-1][0]:
             if tupla[0] == self.simbol_arrel:
                 return (True, tupla[1])
         return (False, 0.0)
+    
+    def display_arbre(self):
+        """
+        Mostra l'arbre gramatical de manera llegible.
+        Utilitzem la funció _mostrar_arbre per imprimir l'arbre de manera jeràrquica.
+        """
+        if self.arbre_gramatical is None:
+            print("No s'ha creat cap arbre gramatical.")
+            return
+        self.__mostrar_arbre(self.arbre_gramatical, 0)
     
     def _preprocessar_gramatica(self) -> Dict[Tuple[str, str], Set[tuple[str, float]]]:
         """ 
@@ -119,7 +129,7 @@ class GramaticaProbabilistica():
                     # emmagatzemem el no-terminal i la probabilitat
         return regles_binaries
     
-    def crear_arbre_gramatical(self, taula: List[List[Set[Tuple[str, float, Tuple[str,str], Tuple[int, int]]]]]) -> None:
+    def _crear_arbre_gramatical(self, taula: List[List[Set[Tuple[str, float, Tuple[str,str], Tuple[int, int]]]]]) -> None:
         """
         Crea l'arbre gramatical a partir de la taula triangular generada per l'algoritme CKY.
         :param taula: Taula triangular generada per l'algoritme CKY.
@@ -192,18 +202,8 @@ class GramaticaProbabilistica():
                 'fill': [fill_esquerra, fill_dreta],
                 'probabilitat': millor_tupla[1]
             }
-    
-    def display_arbre(self):
-        """
-        Mostra l'arbre gramatical de manera llegible.
-        Utilitzem la funció _mostrar_arbre per imprimir l'arbre de manera jeràrquica.
-        """
-        if self.arbre_gramatical is None:
-            print("No s'ha creat cap arbre gramatical.")
-            return
-        self._mostrar_arbre(self.arbre_gramatical, 0)
 
-    def _mostrar_arbre(self, node: dict, depth: int):
+    def __mostrar_arbre(self, node: dict, depth: int):
         """
         Mostra un node de l'arbre gramatical de manera estètica i jeràrquica.
         :param node: Node de l'arbre a mostrar.
@@ -221,9 +221,9 @@ class GramaticaProbabilistica():
             # No terminals
             print(f"{prefix}\033[1;33m{node['no_terminal']}\033[0m (p={node['probabilitat']:.2e})")
             for fill in node['fill']:
-                self._mostrar_arbre(fill, depth + 1)
+                self.__mostrar_arbre(fill, depth + 1)
     
-    def _comprovar_derivacio_buida(self) -> bool:
+    def __comprovar_derivacio_buida(self) -> bool:
         """ 
         Comprova si la cadena buida és derivable a partir del símbol d'inici. 
         """
@@ -233,17 +233,17 @@ class GramaticaProbabilistica():
                     return True
         return False
     
-    def forma_normal_chomsky(self) -> None:
+    def _forma_normal_chomsky(self) -> None:
         """
         Transforma la gramàtica a Forma Normal de Chomsky (FNC) per a gramàtiques probabilístiques.
         Les probabilitats es distribueixen proporcionalment quan es creen noves regles.
         """
-        self._eliminar_produccions_buides_pcky()
-        self._eliminar_regles_unitaries_pcky()
-        self._convertir_regles_terminals_pcky()
-        self._convertir_regles_llargues_pcky()
+        self.__eliminar_produccions_buides_pcky()
+        self.__eliminar_regles_unitaries_pcky()
+        self.__convertir_regles_terminals_pcky()
+        self.__convertir_regles_llargues_pcky()
 
-    def _generar_combinacions_pcky(self, produccio: List[str], buides: Set[str]) -> Set[Tuple[str]]:
+    def __generar_combinacions_pcky(self, produccio: List[str], buides: Set[str]) -> Set[Tuple[str]]:
         """
         Genera totes les combinacions possibles de produccions eliminant els no-terminals que són buits.
         :param produccio: Producció original.
@@ -258,12 +258,12 @@ class GramaticaProbabilistica():
 
         for i in range(len(produccio)):  # Itera sobre cada símbol de la producció
             if produccio[i] in buides:
-                sub_combinacions = self._generar_combinacions_pcky(produccio[:i] + produccio[i+1:], buides)
+                sub_combinacions = self.__generar_combinacions_pcky(produccio[:i] + produccio[i+1:], buides)
                 resultats.update(sub_combinacions)  # Genera combinacions sense aquest símbol si és buit
 
         return resultats
 
-    def _eliminar_produccions_buides_pcky(self):
+    def __eliminar_produccions_buides_pcky(self):
         """
         Elimina produccions buides de la gramàtica (A -> ε) per gramàtiques probabilístiques.
         Aquesta funció identifica els no-terminals que poden derivar a la cadena buida i elimina les produccions que només contenen aquests no-terminals. 
@@ -295,7 +295,7 @@ class GramaticaProbabilistica():
             
             for produccio, probabilitat in produccions:
                 if not (produccio == '' or produccio == [] or produccio == [''] or produccio == ['ε']):  # Si la producció és buida, no cal afegir-la
-                    combinacions = self._generar_combinacions_pcky(list(produccio), buides)
+                    combinacions = self.__generar_combinacions_pcky(list(produccio), buides)
                     for combinacio in combinacions:
                         if combinacio and combinacio != ('ε',) and combinacio != ('',):
                             if combinacio not in noves_produccions:
@@ -307,7 +307,7 @@ class GramaticaProbabilistica():
         
         self.gramatica = nova_gramatica
 
-    def _eliminar_regles_unitaries_pcky(self):
+    def __eliminar_regles_unitaries_pcky(self):
         """
         Elimina regles unitàries de la gramàtica (A -> B) per gramàtiques probabilístiques.
         Aquesta funció transforma regles unitàries en regles que contenen les produccions de B, multiplicant les probabilitats.
@@ -336,7 +336,7 @@ class GramaticaProbabilistica():
             
             self.gramatica = nova_gramatica
 
-    def _convertir_regles_terminals_pcky(self):
+    def __convertir_regles_terminals_pcky(self):
         """
         Converteix regles com (A -> ab) en regles no terminals separades (A -> T1 T2) 
         on Tn és un nou no-terminal (T1 -> a) (T2 -> b) per gramàtiques probabilístiques.
@@ -380,7 +380,7 @@ class GramaticaProbabilistica():
 
         self.gramatica = nova_gramatica
 
-    def _convertir_regles_llargues_pcky(self):
+    def __convertir_regles_llargues_pcky(self):
         """
         Converteix regles llargues a regles binàries per gramàtiques probabilístiques, és a dir, transforma regles amb més de dos símbols en regles que només tenen dues parts.
         Per exemple, A -> B C D es converteix en A -> X1 D i X1 -> B C, on X1 és un nou no-terminal.
