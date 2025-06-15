@@ -46,10 +46,10 @@ class Gramatica():
                     # Si alguna de les dues parts és buida, no podem continuar
                     if part_esq and part_dre:
                         # Comprovem totes les regles de la gramàtica per produccions binàries
-                        for no_terminal_diag in part_esq:
-                            for no_termina_col in part_dre:
+                        for no_terminal_esq in part_esq:
+                            for no_termina_dre in part_dre:
                                 # Comprovem les produccions binàries (A -> BC)
-                                clau = (no_terminal_diag, no_termina_col)
+                                clau = (no_terminal_esq, no_termina_dre)
                                 if clau in self.regles_binaries:
                                     taula[longitud][col_esq].update(self.regles_binaries[clau])
 

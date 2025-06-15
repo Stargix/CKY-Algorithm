@@ -38,49 +38,61 @@ class GramaticaProbabilistica():
                         taula[0][col].add((no_terminal, probabilitat, (paraula,), (0, col), None))
         
         # Omplim la resta de la taula (longitud 2 a n)
-        for fila in range(1, n):  # longitud de la subcadena
-            for diag in range(n - fila):
-                col = diag + fila
+        for longitud in range(1, n):  # longitud de la subcadena
+            for col_esq in range(n - longitud): # inici de la subcadena
+                col = col_esq + longitud
 
                 # Provem totes les possibles divisions de la subcadena
-                for k in range(fila):       
+                for fila_esq in range(longitud): # longitud de la part esquerra
                     
-                    fila_dreta = fila - k - 1
-                    col_dreta = diag + k + 1
+                    fila_dre = longitud - fila_esq - 1
+                    col_dre = col_esq + fila_esq + 1
 
-                    part_diag = taula[k][diag]
-                    part_col = taula[fila_dreta][col_dreta]
+                    part_esq = taula[fila_esq][col_esq]
+                    part_dre = taula[fila_dre][col_dre]
+
                     # Si alguna de les dues parts és buida, no podem continuar
-                    if not part_diag or not part_col:
-                        continue
-                    
-                    # Comprovem totes les regles de la gramàtica per produccions binàries
-                    for no_terminal_diag in part_diag:
-                        for no_terminal_col in part_col:
-                            # Comprovem les produccions binàries (A -> BC)
-                            clau = (no_terminal_diag[0], no_terminal_col[0])
-                            if clau in self.regles_binaries:
-                                for valor_no_terminal, probabilitat in self.regles_binaries[clau]:
-                                    # Comprovar si ja existeix aquest no-terminal en la cel·la
-                                    existeix = False
-                                    for tupla_existent in taula[fila][diag]:
-                                        if tupla_existent[0] == valor_no_terminal:
-                                            # Si ja existeix, comparem probabilitats i mantenim el major
-                                            if probabilitat * no_terminal_diag[1] * no_terminal_col[1] > tupla_existent[1]:
-                                                taula[fila][diag].remove(tupla_existent)
+                    if part_esq and part_dre:
+                        # Comprovem totes les regles de la gramàtica per produccions binàries
+                        for no_terminal_esq in part_esq:
+                            for no_terminal_dre in part_dre:
+                                # Comprovem les produccions binàries (A -> BC)
+                                clau = (no_terminal_esq[0], no_terminal_dre[0])
+
+                                if clau in self.regles_binaries:
+                                    for valor_no_terminal, probabilitat in self.regles_binaries[clau]:
+                                        # Busquem si ja existeix aquest no-terminal en la cel·la
+                                        tupla_existent = None
+                                        for tupla in taula[longitud][col_esq]:
+                                            if tupla[0] == valor_no_terminal:
+                                                tupla_existent = tupla
                                                 break
-                                            else:
-                                                existeix = True
-                                                break
-                                    if not existeix:
-                                        # Les coordenades han de ser en format original (inici, fi)
-                                        coord_izq = (diag, diag + k)
-                                        coord_der = (diag + k + 1, col)
-                                        taula[fila][diag].add((valor_no_terminal, 
-                                                            probabilitat * no_terminal_diag[1] * no_terminal_col[1], 
-                                                            (no_terminal_diag[0], no_terminal_col[0]), 
-                                                            coord_izq, 
-                                                            coord_der))
+                                        
+                                        # Calculem la nova probabilitat
+                                        nova_probabilitat = probabilitat * no_terminal_esq[1] * no_terminal_dre[1]
+                                        
+                                        if tupla_existent is not None:
+                                            # Si existeix, comprovem si la nova probabilitat és major
+                                            if nova_probabilitat > tupla_existent[1]:
+                                                taula[longitud][col_esq].remove(tupla_existent)
+                                                # Agreguem la nova tupla amb la probabilitat actualitzada
+                                                coord_esq = (col_esq, col_esq + fila_esq)
+                                                coord_dre = (col_esq + fila_esq + 1, col)
+                                                taula[longitud][col_esq].add((valor_no_terminal, 
+                                                                            nova_probabilitat, 
+                                                                            (no_terminal_esq[0], no_terminal_dre[0]), 
+                                                                            coord_esq, 
+                                                                            coord_dre))
+                                        else:
+                                            # No existeix, agreguem directament
+                                            coord_esq = (col_esq, col_esq + fila_esq)
+                                            coord_dre = (col_esq + fila_esq + 1, col)
+                                            taula[longitud][col_esq].add((valor_no_terminal, 
+                                                                        nova_probabilitat, 
+                                                                        (no_terminal_esq[0], no_terminal_dre[0]), 
+                                                                        coord_esq, 
+                                                                        coord_dre))
+                                    
         # Un cop omplerta la taula, creem l'arbre gramatical
         self.crear_arbre_gramatical(taula)
         # Comprovem si el símbol arrel està present en alguna tupla de la cel·la final
@@ -183,6 +195,7 @@ class GramaticaProbabilistica():
     def display_arbre(self):
         """
         Mostra l'arbre gramatical de manera llegible.
+        Utilitzem la funció _mostrar_arbre per imprimir l'arbre de manera jeràrquica.
         """
         if self.arbre_gramatical is None:
             print("No s'ha creat cap arbre gramatical.")
