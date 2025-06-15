@@ -3,7 +3,7 @@ from copy import deepcopy
 
 class Gramatica():
     def __init__(self, normes_gramatica: Dict, simbol_arrel: str = 'S') -> None:
-        self.gramatica = deepcopy(normes_gramatica)
+        self.gramatica = deepcopy(normes_gramatica) # Evita aliasing
         self.regles_binaries = self._preprocessar_regles_binaries()
         self.simbol_arrel = simbol_arrel
         
@@ -26,7 +26,7 @@ class Gramatica():
         # Omplim la primera fila (cas base): terminals
         for col in range(n):
             paraula = frase[col]
-            for no_terminal, produccions in self.gramatica.items():
+            for no_terminal, produccions in list(self.gramatica.items()): # Evitem aliasing durant l'execució del bucle
                 for produccio in produccions:
                     # Comprovem les produccions terminals (A -> a)
                     if len(produccio) == 1 and produccio[0] == paraula:
@@ -64,7 +64,7 @@ class Gramatica():
         """
         regles_binaries = {}  # Diccionari on (esq, dre) -> {no_terminal}
         
-        for no_terminal, produccions in self.gramatica.items():
+        for no_terminal, produccions in list(self.gramatica.items()):
             for produccio in produccions:
                 if len(produccio) == 2:  # Només regles binaries
                     clau = (produccio[0], produccio[1])
@@ -92,50 +92,3 @@ class Gramatica():
             f"{no_terminal} -> {', '.join(' '.join(map(str, produccio)) for produccio in produccions)}"
             for no_terminal, produccions in self.gramatica.items()
         )
-    
-
-
-def create_grammar_g1() -> Set[Tuple[str, ...]]:
-    """
-    Crea la gramàtica G1.
-    G1 = {S -> aS | bS | a | b}
-    """
-    return {
-        'S': [['a', 'S'], ['b', 'S'], ['a'], ['b']]
-    }
-
-def create_grammar_g2() -> Set[Tuple[str, ...]]:
-    """
-    Crea la gramàtica G2.
-    G2 = {S -> AB, A -> aA | a, B -> bB | b}
-    """
-    return {
-        'S': [['A', 'B']],
-        'A': [['a', 'A'], ['a']],
-        'B': [['b', 'B'], ['b']]
-    }
-
-def main():
-    # Prova amb la primera gramàtica (G1)
-    print("\nProva amb la gramàtica G1")
-    
-    parser = Gramatica(create_grammar_g1(), simbol_arrel='S')
-    print(parser)
-    frases_g1 = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab"]
-    for frase in frases_g1:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_cky(frase))
-    
-    # Prova amb la segona gramàtica (G2)
-    print("\nProva amb la gramàtica G2")
-    
-    parser = Gramatica(create_grammar_g2(),  simbol_arrel='S')
-    print(parser)
-    frases_g2 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb"]
-    for frase in frases_g2:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_cky(frase))
-
-
-if __name__ == "__main__":
-    main()

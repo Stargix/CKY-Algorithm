@@ -117,7 +117,7 @@ class GramaticaFNC(Gramatica):
                     for simbol in produccio:
                         if simbol.islower() and len(produccio) > 1: # És una terminal en una regla llarga
                             if simbol not in conjunt_terminals:
-                                nou_no_terminal = f"T{contador}"
+                                nou_no_terminal = f"T{contador}" # Afegim un nou no-terminal per la regla
                                 contador += 1
                                 conjunt_terminals[simbol] = nou_no_terminal
                                 self.gramatica[nou_no_terminal] = [[simbol]]
@@ -125,7 +125,7 @@ class GramaticaFNC(Gramatica):
                             nova_prod.append(conjunt_terminals[simbol])
 
                         else:
-                            nova_prod.append(simbol)
+                            nova_prod.append(simbol) # Si no és una terminal, l'afegim tal qual
 
                     noves_produccions.append(nova_prod)
 

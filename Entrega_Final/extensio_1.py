@@ -32,10 +32,10 @@ class GramaticaFNC(Gramatica):
         resultats = set()
         resultats.add(tuple(produccio)) # Sempre inclou la producció original
  
-        for i in range(len(produccio)):
+        for i in range(len(produccio)): # Itera sobre cada símbol de la producció
             if produccio[i] in buides:
                 sub_combinations = self._generar_combinacions(produccio[:i] + produccio[i+1:], buides)
-                resultats.update(sub_combinations)
+                resultats.update(sub_combinations) # Genera combinacions sense aquest símbol si és buit
 
         return resultats
 
@@ -45,6 +45,7 @@ class GramaticaFNC(Gramatica):
         Aquesta funció identifica els no-terminals que poden derivar a la cadena buida i elimina les produccions que només contenen aquests no-terminals. 
         Per exemple, si tenim A -> ε i B -> A C, llavors B es converteix en B -> C.
         """
+        # Troba els no-terminals que poden derivar a la cadena buida
         buides = {no_terminal for no_terminal, produccions in self.gramatica.items() 
                   if [["ε"]] in produccions or [[""]] in produccions or ["ε"] in produccions or [""] in produccions}
         canvi = True
@@ -52,11 +53,11 @@ class GramaticaFNC(Gramatica):
             canvi = False
             nous_buides = buides.copy()
 
-            for no_terminal, produccions in self.gramatica.items():
+            for no_terminal, produccions in list(self.gramatica.items()):
                 for produccio in produccions:
                     if produccio and all(simbol in buides for simbol in produccio):
 
-                        if no_terminal not in nous_buides:
+                        if no_terminal not in nous_buides: # Si el no-terminal ja és buit, no cal afegir-lo de nou
                             nous_buides.add(no_terminal)
                             canvi = True
 
@@ -65,10 +66,10 @@ class GramaticaFNC(Gramatica):
         for no_terminal in self.gramatica:
             noves_produccions = set()
 
-            for produccio in self.gramatica[no_terminal]:
+            for produccio in self.gramatica[no_terminal]: # Si la producció és buida, no cal afegir-la
                 if not (produccio == ["ε"] or produccio == [""]):
                     noves_produccions.update(self._generar_combinacions(produccio, buides))
-
+            # Actualitza les produccions del no-terminal, eliminant les que són buides o iguals a "ε"
             self.gramatica[no_terminal] = [list(prod) for prod in noves_produccions if prod and prod != ("ε") and prod != ("")]
 
     def _eliminar_regles_unitaries(self):
@@ -80,17 +81,17 @@ class GramaticaFNC(Gramatica):
         canviat = True
         while canviat:
             canviat = False
-            for no_terminal, produccions in self.gramatica.items():
+            for no_terminal, produccions in list(self.gramatica.items()):
                 noves_produccions = []
                 for produccio in produccions:
                     if len(produccio) == 1 and produccio[0] in self.gramatica:
                         # És una regla unitària
                         for sub_produccio in self.gramatica[produccio[0]]:
-                            if sub_produccio not in noves_produccions:
+                            if sub_produccio not in noves_produccions: # Evita duplicats
                                 noves_produccions.append(sub_produccio)
-                                canviat = True
+                                canviat = True # Si s'ha afegit una nova producció, marquem el canvi
                     else:
-                        noves_produccions.append(produccio)
+                        noves_produccions.append(produccio) # Manté les produccions que no són unitàries
                 self.gramatica[no_terminal] = noves_produccions
 
     def _convertir_regles_terminals(self):
@@ -104,7 +105,7 @@ class GramaticaFNC(Gramatica):
         contador = 1
         conjunt_terminals = {}
 
-        for no_terminal, produccions in list(self.gramatica.items()):
+        for no_terminal, produccions in list(self.gramatica.items()): 
                 noves_produccions = []
 
                 for produccio in produccions:
@@ -113,15 +114,15 @@ class GramaticaFNC(Gramatica):
                     for simbol in produccio:
                         if simbol.islower() and len(produccio) > 1: # És una terminal en una regla llarga
                             if simbol not in conjunt_terminals:
-                                nou_no_terminal = f"T{contador}"
+                                nou_no_terminal = f"T{contador}" # Afegim un nou no-terminal per la regla
                                 contador += 1
                                 conjunt_terminals[simbol] = nou_no_terminal
-                                self.gramatica[nou_no_terminal] = [[simbol]]
+                                self.gramatica[nou_no_terminal] = [[simbol]] # Afegim la regla terminal (Tn -> a)
 
-                            nova_prod.append(conjunt_terminals[simbol])
+                            nova_prod.append(conjunt_terminals[simbol]) # Afegim el no-terminal corresponent a la terminal
 
                         else:
-                            nova_prod.append(simbol)
+                            nova_prod.append(simbol) # Si no és una terminal, l'afegim tal qual
 
                     noves_produccions.append(nova_prod)
                 self.gramatica[no_terminal] = noves_produccions
@@ -137,10 +138,10 @@ class GramaticaFNC(Gramatica):
 
             for produccio in produccions:
                 while len(produccio) > 2:
-                    nou_no_terminal = f"X{contador}"
+                    nou_no_terminal = f"X{contador}" # Afegim un nou no-terminal per la regla
                     contador += 1
-                    self.gramatica[nou_no_terminal] = [[produccio[0], produccio[1]]]
-                    produccio = [nou_no_terminal] + produccio[2:]
+                    self.gramatica[nou_no_terminal] = [[produccio[0], produccio[1]]] # Afegim la regla binària (Xn -> A B)
+                    produccio = [nou_no_terminal] + produccio[2:] # Actualitzem la producció per continuar amb la següent part
 
-                noves_produccions.append(produccio)
-            self.gramatica[no_terminal] = noves_produccions
+                noves_produccions.append(produccio) # Manté la producció final que ara té com a màxim dos símbols
+            self.gramatica[no_terminal] = noves_produccions 
