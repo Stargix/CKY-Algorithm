@@ -60,8 +60,10 @@ def test_pcky():
             if isinstance(frase, list):
                 frase_junt = " ".join(frase)
             print(f"Frase: '{frase_junt}'", end=" -> ")
-            resultat = GramProb.algoritme_pcky(frase)
-            print(resultat)
+            resultat, probabilitat = GramProb.algoritme_pcky(frase)
+            if resultat:
+                probabilitat = f"{probabilitat:5f}"
+            print(f"{resultat}, prob: {probabilitat}")
 
             if resultat:
                 print()

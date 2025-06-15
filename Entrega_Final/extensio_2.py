@@ -10,7 +10,7 @@ class GramaticaProbabilistica():
         self.simbol_arrel = simbol_arrel
         self.arbre_gramatical = None
 
-    def algoritme_pcky(self, frase: Union[List[str], str]) -> bool:
+    def algoritme_pcky(self, frase: Union[List[str], str]) -> Tuple[bool, float]:
         """
         Analitza una frase gramaticalment utilitzant l'algoritme CKY.
         Omple la taula dinàmica de CKY amb la frase donada.
@@ -98,8 +98,8 @@ class GramaticaProbabilistica():
         # Comprovem si el símbol arrel està present en alguna tupla de la cel·la final
         for tupla in taula[n-1][0]:
             if tupla[0] == self.simbol_arrel:
-                return True
-        return False
+                return (True, tupla[1])
+        return (False, 0.0)
     
     def _preprocessar_gramatica(self) -> Dict[Tuple[str, str], Set[tuple[str, float]]]:
         """ 
