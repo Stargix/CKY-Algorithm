@@ -17,10 +17,10 @@ G2 = {
      }
 
 G3 = {
-        "S": [["A", "B"]],
-        "A": [["a", "A"], ["a"]],
-        "B": [["b", "B"], ["b"]]
-     }
+        "S": [["A", "B"], [""]],  # S -> AB | ε
+        "A": [["a"], [""]],       # A -> a | ε
+        "B": [["b"]]
+}
 
 # G4 extreta de l'exàmen final de PLH del 2023
 
@@ -126,7 +126,7 @@ G12 = {
         'VP': [(['VBD', 'NP'], 0.4), (['VP', 'AP'], 0.6)]
      }
 
-frases_ab = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab", "aaaabbbb"]
+frases_ab = ["", "a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab", "aaaabbbb"]
 
 def processa_frases(frases: list) -> list:
     """
