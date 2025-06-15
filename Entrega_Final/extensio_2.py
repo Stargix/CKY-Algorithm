@@ -1,22 +1,21 @@
-import typing
 from typing import Dict, List, Set, Tuple
+from extensio_1 import forma_normal_chomsky
 
 class GramaticaProbabilistica():
-    def __init__(self) -> None:
-        self.gramatica = None
-        self.regles_binaries = None
-        self.simbol_arrel = None
+    def __init__(self, normes_gramatica: Dict, simbol_arrel: str = 'S') -> None:
+
+        self.gramatica = forma_normal_chomsky(normes_gramatica)
+        self.regles_binaries = self._preprocessar_gramatica()
+        self.simbol_arrel = simbol_arrel
         self.arbre_gramatical = None
 
-    def carregar_gramatica(self, normes_gramatica: Dict, simbol_arrel: str = 'S') -> None:
+    def carregar_gramatica(self) -> None:
         """
         Carreguem una gramàtica en forma normal de Chomsky (CNF).
         :param normes_gramatica: Diccionari on les claus són no-terminals i els valors són llistes de produccions.
         :param simbol_arrel: El símbol d'inici de la gramàtica (per defecte li posarem 'S').
         """
-        self.gramatica = normes_gramatica
-        self.regles_binaries = self._preprocessar_gramatica()
-        self.simbol_arrel = simbol_arrel
+        
         
     def algoritme_pcky(self, frase: str) -> bool:
         """
@@ -85,6 +84,7 @@ class GramaticaProbabilistica():
     
     def crear_arbre_gramatical(self, taula: List[List[Set[Tuple[str, float, Tuple[str,str], Tuple[int, int]]]]]) -> None:
         self.arbre_gramatical = self._construir_arbre(taula, 0, len(taula) - 1, self.simbol_arrel)
+
     def _construir_arbre(self, taula: List[List[Set[Tuple[str, float, Tuple[str,str], Tuple[int, int]]]]], inici: int, final: int, no_terminal: str) -> dict:
         """
         Construeix l'arbre gramatical a partir de la taula de CKY.
@@ -103,6 +103,7 @@ class GramaticaProbabilistica():
                     fill_dreta = self._construir_arbre(taula, coord_der[0], coord_der[1], tupla[2][1])
                     return {'no_terminal': no_terminal, 'simbol': tupla[2], 'fill': [fill_esquerra, fill_dreta]}
         return None
+    
     def display_arbre(self):
         """
         Mostra l'arbre gramatical de manera llegible.
@@ -111,6 +112,7 @@ class GramaticaProbabilistica():
             print("No s'ha creat cap arbre gramatical.")
             return
         self._mostrar_arbre(self.arbre_gramatical, 0)
+
     def _mostrar_arbre(self, node: dict, depth: int):
         """
         Mostra un node de l'arbre gramatical de manera estètica i jeràrquica.
@@ -155,107 +157,6 @@ class GramaticaProbabilistica():
                 if produccio == '':
                     return True
         return False
-    
-    def forma_normal_chomsky(self) -> bool:
-        """
-        Transforma la gramàtica a Forma Normal de Chomsky (FNC).
-        :return: Retorna True si la transformació s'ha completat correctament.
-        """
-        # 1. Eliminar producciones buides (A -> ε)
-        self._eliminar_produccions_buides()
-        # 2. Eliminar regles unitàries (A -> B)
-        self._eliminar_regles_unitaries()
-        # 3. Convertir regles llargues a regles binàries (A -> BC...Z)
-        self._convertir_regles_llargues()
-        # 4. Assegurar que les regles terminals siguin A -> a
-        self._convertir_regles_terminals()
-
-        return True
-
-    def _eliminar_produccions_buides(self):
-        """
-        Elimina produccions buides (A -> ε) excepte per al símbol d'inici.
-        """
-        produccions_buides = set()
-        
-        # Identificar no terminales que producen ε
-        for no_terminal, produccions in self.gramatica.items():
-            for produccio in produccions:
-                if produccio == ["ε"]:
-                    produccions_buides.add(no_terminal)
-
-        # Eliminar producciones ε y ajustar las demás reglas
-        for no_terminal in self.gramatica:
-            noves_produccions = set()
-            for produccio in self.gramatica[no_terminal]:
-                if any(nt in produccions_buides for nt in produccio):
-                    # Generar nuevas combinaciones sin los no terminales que producen ε
-                    combinacions = self._generar_combinacions(produccio, produccions_buides)
-                    noves_produccions.update(combinacions)
-                else:
-                    noves_produccions.add(tuple(produccio))
-            self.gramatica[no_terminal] = list(noves_produccions)
-
-        # Eliminar ε de las producciones
-        for no_terminal in produccions_buides:
-            self.gramatica[no_terminal] = [
-                produccio for produccio in self.gramatica[no_terminal] if produccio != ["ε"]
-            ]
-
-    def _eliminar_regles_unitaries(self):
-        """Elimina reglas unitarias (A -> B)."""
-        for no_terminal in list(self.gramatica.keys()):
-            unitaries = [p[0] for p in self.gramatica[no_terminal] if len(p) == 1 and p[0] in self.gramatica]
-            while unitaries:
-                unitary = unitaries.pop()
-                self.gramatica[no_terminal].remove([unitary])
-                for produccio in self.gramatica[unitary]:
-                    if produccio not in self.gramatica[no_terminal]:
-                        self.gramatica[no_terminal].append(produccio)
-                        if len(produccio) == 1 and produccio[0] in self.gramatica:
-                            unitaries.append(produccio[0])
-
-    def _convertir_regles_llargues(self):
-        """Convierte reglas largas (A -> BC...Z) en reglas binarias."""
-        contador = 1
-        for no_terminal in list(self.gramatica.keys()):
-            noves_produccions = []
-            for produccio in self.gramatica[no_terminal]:
-                while len(produccio) > 2:
-                    # Crear un nuevo no terminal para dividir la regla
-                    nou_no_terminal = f"X{contador}"
-                    contador += 1
-                    self.gramatica[nou_no_terminal] = [[produccio[0], produccio[1]]]
-                    produccio = [nou_no_terminal] + produccio[2:]
-                noves_produccions.append(produccio)
-            self.gramatica[no_terminal] = noves_produccions
-
-    def _convertir_regles_terminals(self):
-        """Asegura que las reglas terminales sean de la forma A -> a."""
-        contador = 1
-        terminals_map = {}
-        for no_terminal in list(self.gramatica.keys()):
-            noves_produccions = []
-            for produccio in self.gramatica[no_terminal]:
-                if len(produccio) > 1:
-                    nova_produccio = []
-                    for simbol in produccio:
-                        if simbol.islower():  # Es un terminal
-                            if simbol not in terminals_map:
-                                nou_no_terminal = f"T{contador}"
-                                contador += 1
-                                terminals_map[simbol] = nou_no_terminal
-                                self.gramatica[nou_no_terminal] = [[simbol]]
-                            nova_produccio.append(terminals_map[simbol])
-                        else:
-                            nova_produccio.append(simbol)
-                    noves_produccions.append(nova_produccio)
-                else:
-                    noves_produccions.append(produccio)
-            self.gramatica[no_terminal] = noves_produccions
-        
-        
-        
     
     def __str__(self):
         """ Retorna una representació en cadena de la gramàtica carregada. """
@@ -321,12 +222,11 @@ xd = {
 
 
 def main():
-    parser = GramaticaProbabilistica()
     # Prova amb la primera gramàtica (G1)
     print("\nProva amb la gramàtica G1")
+    
+    parser = GramaticaProbabilistica(create_grammar_g1(), simbol_arrel='S')
     print(parser)
-    parser.carregar_gramatica(create_grammar_g1(), simbol_arrel='S')
-
     frases_g1 = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab"]
     for frase in frases_g1:
         print(f"Frase: '{frase}'", end=" -> ")
@@ -334,9 +234,9 @@ def main():
     
     # Prova amb la segona gramàtica (G2)
     print("\nProva amb la gramàtica G2")
+    
+    parser = GramaticaProbabilistica(create_grammar_g2(),  simbol_arrel='S')
     print(parser)
-    parser.carregar_gramatica(create_grammar_g2(),  simbol_arrel='S')
-
     frases_g2 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb","abab"]
     for frase in frases_g2:
         print(f"Frase: '{frase}'", end=" -> ")
@@ -346,7 +246,7 @@ def main():
 
     # Prova amb la gramàtica de l'exemple
     print("\nProva amb la gramàtica de l'exemple")
-    parser.carregar_gramatica(xd, simbol_arrel='S')
+    parser = GramaticaProbabilistica(xd, simbol_arrel='S')
     print(parser)
     frases_xd = ["els carbassots són millors", "els pardimolls són millors", "els carbassots són els millors", "els pardimolls són els millors", "els carbassots són els millors pardimolls"]
 

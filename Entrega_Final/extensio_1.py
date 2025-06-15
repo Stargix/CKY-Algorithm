@@ -1,15 +1,13 @@
-from typing import List, Set, Tuple
-from cky import Gramatica
+from typing import List, Dict, Tuple, Set
+from main_cky import Gramatica
 from copy import deepcopy
 
+
 class GramaticaFNC(Gramatica):
-    def __init__(self, normes_gramatica: set, simbol_arrel: str = 'S') -> None:
-        copia_normes_gramatica = deepcopy(normes_gramatica) # Evita aliasing
-        super().__init__(copia_normes_gramatica, simbol_arrel)
-        self.normes_gramatica = copia_normes_gramatica
-        self._forma_normal_chomsky() # Transformem la gramàtica a FNC
-        self.regles_binaries = self._preprocessar_regles_binaries()
-        self.simbol_arrel = simbol_arrel
+    def __init__(self, normes_gramatica: Dict, simbol_arrel: str = 'S') -> None:
+        # Transforma la gramàtica a Forma Normal de Chomsky i inicialitza la classe base
+        gramatica_fnc = forma_normal_chomsky(normes_gramatica)
+        super().__init__(gramatica_fnc, simbol_arrel)
 
     def _forma_normal_chomsky(self) -> None:
         """

@@ -15,10 +15,6 @@ class Gramatica():
         :param frase: Es tracta de la cadena que volem analitzar (str o List[str]).
         :return: Retorna un boolean que inidica si la cadena es pot derivar o no.
         """
-
-        if " " in frase:
-            frase = frase.split()
-        
         if not frase:
             # Comprovem si la cadena buida és derivable (S -> ε)
             return self._comprovar_derivacio_buida()
@@ -302,7 +298,7 @@ def main():
     print(gramatica_4.regles_binaries)
     print()
     
-    result = gramatica_4.algoritme_cky("els carbassots són els millors pardimolls")
+    result = gramatica_4.algoritme_cky("els carbassots són els millors pardimolls".split())
     print(f"Result: {result}")
 
     gramatica_2 = Gramatica(create_grammar_g2(), simbol_arrel='S')
