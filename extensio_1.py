@@ -99,43 +99,57 @@ class GramaticaFNC(Gramatica):
             self.gramatica[nt] = noves_prod
 
     def _convertir_regles_terminals(self):
+        """
+        Converteix regles com (A -> aBc) en regles separades (A -> Tn) on Tn és un nou no-terminal.
+
+        Pressuposa que les regles terminals estàn escrites en minúscules
+        """
+
         contador = 1
-        terminals_map = {}
-        for nt in list(self.gramatica.keys()):
-            noves_prod = []
-            for p in self.gramatica[nt]:
-                nova_p = []
-                for s in p:
-                    if s.islower() and len(p) > 1:  # És un terminal en una regla llarga
-                        if s not in terminals_map:
-                            nou_nt = f"T{contador}"
-                            contador += 1
-                            terminals_map[s] = nou_nt
-                            self.gramatica[nou_nt] = [[s]]
-                        nova_p.append(terminals_map[s])
-                    else:
-                        nova_p.append(s)
-                noves_prod.append(nova_p)
-            self.gramatica[nt] = noves_prod
+        conjunt_terminals = {}
+
+        for no_terminal, produccions in self.gramatica.items():
+                noves_produccions = []
+
+                for produccio in produccions:
+                    nova_prod = []
+        
+                    for simbol in produccio:
+                        if simbol.islower() and len(produccio) > 1: # És una terminal en una regla llarga
+                            if simbol not in conjunt_terminals:
+                                nou_no_terminal = f"T{contador}"
+                                contador += 1
+                                conjunt_terminals[simbol] = nou_no_terminal
+                                self.gramatica[nou_no_terminal] = [[simbol]]
+
+                            nova_prod.append(conjunt_terminals[simbol])
+
+                        else:
+                            nova_prod.append(simbol)
+
+                    noves_produccions.append(nova_prod)
+
+                self.gramatica[no_terminal] = noves_produccions
 
 
-xd = {
-        'S': [['NP', 'VP']],
-        'NP': [['Det', 'N'], ['Det', 'Adj', 'N']],
-        'VP': [['V', 'NP']],
-        'Det': [['els']],
-        'N': [['carbassots'], ['pardimolls']],
-        'Adj': [['millors']],
-        'V': [['són']]
-    }
+if __name__ == "__main__":
 
-x = Gramatica(xd)
-g = GramaticaFNC(xd)
-print("\nGramatica original:")
-print(x)
-print("\nGramatica FNC:")
-print(g)
+    xd = {
+            'S': [['NP', 'VP']],
+            'NP': [['Det', 'N'], ['Det', 'Adj', 'N']],
+            'VP': [['V', 'NP']],
+            'Det': [['els']],
+            'N': [['carbassots'], ['pardimolls']],
+            'Adj': [['millors']],
+            'V': [['són']]
+        }
 
+    x = Gramatica(xd)
+    g = GramaticaFNC(xd)
+    print("\nGramatica original:")
+    print(x)
+    print("\nGramatica FNC:")
+    print(g)
 
-res = g.algoritme_cky("els carbassots són els millors pardimolls".split())
-print("\nResultat de l'algoritme CKY:", res)
+    res = g.algoritme_cky("els carbassots són els millors pardimolls".split())
+    print("\nResultat de l'algoritme CKY:", res)
