@@ -18,9 +18,12 @@ def test_cky():
     """
     Funció per provar l'algoritme CKY amb diferents gramàtiques i frases.
     """
-    
+
     for gramatica, paraules in gramatiques_simples:
         print(f"\nProva amb la gramàtica:\n")
+        
+        paraules = paraules.copy()  # Evitem modificar la llista original
+        paraules.append("")
         
         Gram = Gramatica(gramatica)
         print(Gram, end="\n\n")

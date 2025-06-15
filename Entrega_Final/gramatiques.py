@@ -126,7 +126,7 @@ G12 = {
         'VP': [(['VBD', 'NP'], 0.4), (['VP', 'AP'], 0.6)]
      }
 
-frases_ab = ["", "a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab", "aaaabbbb"]
+frases_ab = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab", "aaaabbbb"]
 
 def processa_frases(frases: list) -> list:
     """

@@ -20,7 +20,7 @@ class GramaticaProbabilistica():
         
         if not frase:
             # Comprovem si la cadena buida és derivable (S -> ε)
-            return self.__comprovar_derivacio_buida()
+            return self._comprovar_derivacio_buida()
         
         n = len(frase)
         # Crea taula triangular buida (aprofitem la propietat triangular de la taula CKY i ens estalviem memòria innecessària)
@@ -223,13 +223,13 @@ class GramaticaProbabilistica():
             for fill in node['fill']:
                 self.__mostrar_arbre(fill, depth + 1)
     
-    def __comprovar_derivacio_buida(self) -> bool:
+    def _comprovar_derivacio_buida(self) -> bool:
         """ 
         Comprova si la cadena buida és derivable a partir del símbol d'inici. 
         """
         if self.simbol_arrel in self.gramatica:
             for produccio, _ in self.gramatica[self.simbol_arrel]:
-                if produccio == '' or produccio == []:
+                if len(produccio) == 1 and produccio[0] in ['ε', '']:
                     return True
         return False
     
