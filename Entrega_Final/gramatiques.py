@@ -8,8 +8,6 @@ G1 = {
         "R": [["X", "B"]]
      }
 
-frases_G1 = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab"]
-
 G2 = {
         "S": [["A", "B"], ["C", "D"], ["C", "B"], ["S", "S"]],
         "A": [["B", "C"], ["a"]],
@@ -18,15 +16,11 @@ G2 = {
         "D": [["B", "A"]]
      }
 
-frases_G2 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb"]
-
 G3 = {
         "S": [["A", "B"]],
         "A": [["a", "A"], ["a"]],
         "B": [["b", "B"], ["b"]]
      }
-
-frases_G3 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb"]
 
 # G4 extreta de l'exàmen final de PLH del 2023
 
@@ -60,8 +54,8 @@ G7 = {
         'S': [['NP', 'VP']],
         'NP': [['Det', 'N'], ['Det', 'Adj', 'N']],
         'VP': [['V', 'NP']],
-        'Det': [['els']],
-        'N': [['carbassots'], ['pardimolls']],
+        'Det': [['les']],
+        'N': [['llistes'], ['estructures']],
         'Adj': [['millors']],
         'V': [['són']]
      }
@@ -74,8 +68,8 @@ G8 = {
         'VP': [['VBD', 'NP'], ['VP', 'AP']],
         'AP': [['VBG', 'PP']],
         'PP': [['IN', 'NP']],
-        'NNP': [['John']],
-        'PRP$': [['your'], ['his']],
+        'NNP': [['john']],
+        'PRP': [['your'], ['his']],
         'NN': [['brother']],
         'NNS': [['glasses']],
         'IN': [['with']],
@@ -91,13 +85,13 @@ G9 = {
         'B': [(['b'], 1.0)]
      }
 
-G10 = { 
-        'S': [(['A', 'B'], 0.6), (['B', 'A'], 0.4)], 
-        'A': [(['a'], 0.8), (['A', 'A'], 0.2)], 
-        'B': [(['b'], 0.6), (['B', 'E'], 0.25), (['B', 'D'], 0.15)], 
-        'D': [(['d'], 1.0)], 
-        'E': [(['e'], 1.0)]
-     }
+G10 = {
+        "S": [(["a"], 0.2), (["X", "A"], 0.3), (["A", "X"], 0.3), (["b"], 0.2)],
+        "A": [(["R", "B"], 1.0)],
+        "B": [(["A", "X"], 0.4), (["b"], 0.3), (["a"], 0.3)],
+        "X": [(["a"], 1.0)],
+        "R": [(["X", "B"], 1.0)]
+      }
 
 # G11 extreta de l'exàmen final de PLH del 2023
 
@@ -116,9 +110,9 @@ G11 = {
 
 G12 = {
         'S': [(['NP', 'VP'], 1.0)],
-        'NP': [(['PRP$', 'NN'], 0.5), (['PRP$', 'NNS'], 0.3), (['NNP'], 0.1), (['NP', 'AP'], 0.1)],
-        'NNP': [(['John'], 1.0)],
-        'PRP$': [(['your'], 0.6), (['his'], 0.4)],
+        'NP': [(['PRP', 'NN'], 0.5), (['PRP', 'NNS'], 0.3), (['NNP'], 0.1), (['NP', 'AP'], 0.1)],
+        'NNP': [(['john'], 1.0)],
+        'PRP': [(['your'], 0.6), (['his'], 0.4)],
         'NN': [(['brother'], 1.0)],
         'NNS': [(['glasses'], 1.0)],
         'AP': [(['VBG', 'PP'], 1.0)],
@@ -129,6 +123,39 @@ G12 = {
         'VP': [(['VBD', 'NP'], 0.4), (['VP', 'AP'], 0.6)]
      }
 
-gramatiques_simples = [G1, G2, G3, G4]
-gramatiques_no_FNC = [G5, G6, G7, G8]
-gramatiques_probabilistes = [G9, G10, G11, G12]
+frases_ab = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab", "aaaabbbb"]
+
+def processa_frases(frases: list) -> list:
+    """
+    Processa una llista de frases, convertint-les en llistes de paraules
+    En el cas de frases de caràcters simples (a, b, etc.), 
+    aquest preprocessament no és necessari ja que els strings ja es comporten d'aquesta manera.
+    """
+    return [f.split() for f in frases]
+
+frases_lst = [
+        "les llistes són les millors estructures",
+        "les llistes són les millors",
+        "les llistes són estructures",
+        "les estructures són les millors llistes",
+]
+
+frases_2023 = [
+        "his pajamas",
+        "groucho in pajamas",
+        "elephant in pajamas",
+        "groucho shot an elephant in his pajamas"
+]
+
+frases_2024 = [
+        "john saw your brother",
+        "john saw his glasses",
+        "john playing with your brother",
+        "john saw your brother playing with his glasses"
+]
+
+frases_lst, frases_2023, frases_2024 = map(processa_frases, [frases_lst, frases_2023, frases_2024])
+
+gramatiques_simples = [(G1, frases_ab), (G2, frases_ab), (G3, frases_ab), (G4, frases_2023)]
+gramatiques_no_FNC = [(G5, frases_ab), (G6, frases_ab), (G7, frases_lst), (G8, frases_2024)]
+gramatiques_probabilistes = [(G9, frases_ab), (G10, frases_ab), (G11, frases_2023), (G12, frases_2024)]

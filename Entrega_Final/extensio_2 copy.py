@@ -34,7 +34,7 @@ class GramaticaProbabilistica():
                     # Comprovem les produccions terminals (A -> a)
                     if isinstance(produccio, str) and produccio == paraula:
                         taula[0][col].add((no_terminal, probabilitat, (paraula,), (0, col), None))
-                    elif isinstance(produccio, list) and len(produccio) == 1 and produccio[0] == paraula:
+                    elif (isinstance(produccio, list) or isinstance(produccio, tuple)) and len(produccio) == 1 and produccio[0] == paraula:
                         taula[0][col].add((no_terminal, probabilitat, (paraula,), (0, col), None))
         
         # Omplim la resta de la taula (longitud 2 a n)
@@ -138,12 +138,12 @@ class GramaticaProbabilistica():
             coord_orig_izq = millor_tupla[3]  # (inicio, fin) del hijo izquierdo
             coord_orig_der = millor_tupla[4]  # (inicio, fin) del hijo derecho
             
-            # Convertir coordenades originals a coordenades triangulares
-            # Per hijo izquierdo: (inicio_orig, fin_orig) -> (fin_orig - inicio_orig, inicio_orig)
+            # Convertir coordenadas originales a coordenadas triangulares
+            # Para hijo izquierdo: (inicio_orig, fin_orig) -> (fin_orig - inicio_orig, inicio_orig)
             fila_izq = coord_orig_izq[1] - coord_orig_izq[0]
             col_izq = coord_orig_izq[0]
             
-            # Per hijo derecho: (inicio_orig, fin_orig) -> (fin_orig - inicio_orig, inicio_orig)
+            # Para hijo derecho: (inicio_orig, fin_orig) -> (fin_orig - inicio_orig, inicio_orig)
             fila_der = coord_orig_der[1] - coord_orig_der[0]
             col_der = coord_orig_der[0]
             
@@ -196,7 +196,7 @@ class GramaticaProbabilistica():
         
         for no_terminal, produccions in self.gramatica.items():
             for produccio, probabilitat in produccions: 
-                if isinstance(produccio, list) and len(produccio) == 2:  # Només regles binàries
+                if isinstance(produccio, tuple) and len(produccio) == 2:  # Només regles binàries
                     clau = (produccio[0], produccio[1])
                     if clau not in regles_binaries:
                         regles_binaries[clau] = set()
@@ -210,7 +210,7 @@ class GramaticaProbabilistica():
         """
         if self.simbol_arrel in self.gramatica:
             for produccio, _ in self.gramatica[self.simbol_arrel]:
-                if produccio == '' or produccio == []:
+                if produccio == '':
                     return True
         return False
     
@@ -222,8 +222,8 @@ class GramaticaProbabilistica():
         for no_terminal, produccions in self.gramatica.items():
             prods = []
             for produccio, probabilitat in produccions:
-                if isinstance(produccio, list):
-                    prod_str = ' '.join(produccio)
+                if isinstance(produccio, tuple):
+                    prod_str = ''.join(produccio)
                 else:
                     prod_str = str(produccio)
                 prods.append(f"{prod_str} ({probabilitat})")
@@ -234,26 +234,26 @@ class GramaticaProbabilistica():
 
 def create_grammar_g1():
     """
-    Create the first example grammar G1 - CORREGIDA CON LISTAS
+    Create the first example grammar G1 - CORREGIDA CON TUPLAS
     """
     return {
-        'S': [(['a'], 0.3), (['X', 'A'], 0.2), (['A', 'X'], 0.4), (['b'], 0.1)],
-        'A': [(['R', 'B'], 1.0)],
-        'B': [(['A', 'X'], 0.5), (['b'], 0.3), (['a'], 0.2)],
-        'X': [(['a'], 1.0)],
-        'R': [(['X', 'B'], 1.0)]
+        'S': [('a', 0.3), (('X', 'A'), 0.2), (('A', 'X'), 0.4), ('b', 0.1)],
+        'A': [(('R', 'B'), 1.0)],
+        'B': [(('A', 'X'), 0.5), ('b', 0.3), ('a', 0.2)],
+        'X': [('a', 1.0)],
+        'R': [(('X', 'B'), 1.0)]
     }
 
 def create_grammar_g2():
     """
-    Create the second example grammar G2 - CORREGIDA CON LISTAS
+    Create the second example grammar G2 - CORREGIDA CON TUPLAS
     """
     return {
-        'S': [(['A', 'B'], 0.4), (['C', 'D'], 0.3), (['C', 'B'], 0.2), (['B', 'B'], 0.1)],
-        'A': [(['B', 'C'], 0.7), (['a'], 0.3)],
-        'B': [(['A', 'C'], 0.6), (['b'], 0.4)],
-        'C': [(['D', 'D'], 0.8), (['b'], 0.2)],
-        'D': [(['B', 'A'], 1.0)]
+        'S': [(('A', 'B'), 0.4), (('C', 'D'), 0.3), (('C', 'B'), 0.2), (('B', 'B'), 0.1)],
+        'A': [(('B', 'C'), 0.7), ('a', 0.3)],
+        'B': [(('A', 'C'), 0.6), ('b', 0.4)],
+        'C': [(('D', 'D'), 0.8), ('b', 0.2)],
+        'D': [(('B', 'A'), 1.0)]
     }
 def create_grammar_g3():
     """
@@ -265,42 +265,42 @@ def create_grammar_g3():
     D → dD | d
     """
     return {
-        'S': [(['NP', 'VP'], 1.0)],  # S → NP VP
-        'NP': [(['Det', 'N'], 0.7), (['Det', 'AN'], 0.3)],  # NP → Det N | Det AN
-        'AN': [(['Adj', 'N'], 1.0)],  # AN → Adj N 
-        'VP': [(['V', 'NP'], 1.0)],  # VP → V NP
-        'Det': [(['els'], 1.0)],  # Det → els
-        'N': [(['carbassots'], 0.5), (['pardimolls'], 0.5)],  # N → carbassots | pardimolls
-        'Adj': [(['millors'], 1.0)],  # Adj → millors
-        'V': [(['són'], 1.0)]  # V → són
+        'S': [(('NP', 'VP'), 1.0)],  # S → NP VP
+        'NP': [(('Det', 'N'), 0.7), (('Det', 'AN'), 0.3)],  # NP → Det N | Det AN
+        'AN': [(('Adj', 'N'), 1.0)],  # AN → Adj N 
+        'VP': [(('V', 'NP'), 1.0)],  # VP → V NP
+        'Det': [('els', 1.0)],  # Det → els
+        'N': [('carbassots', 0.5), ('pardimolls', 0.5)],  # N → carbassots | pardimolls
+        'Adj': [('millors', 1.0)],  # Adj → millors
+        'V': [('són', 1.0)]  # V → són
     }
 
 plh_probabilitat = {
-    'S': [ (['NP', 'VP'], 1.0) ],
+    'S': [ (('NP', 'VP'), 1.0) ],
     'NP': [
-        (['DT', 'NN'], 0.4),
-        (['DT', 'NNS'], 0.3),
-        (['groucho'], 0.01),
-        (['shot'], 0.03),
-        (['elephant'], 0.04),
-        (['NP', 'PP'], 0.2)
+        (('DT', 'NN'), 0.4),
+        (('DT', 'NNS'), 0.3),
+        (('groucho',), 0.01),
+        (('shot',), 0.03),
+        (('elephant',), 0.04),
+        (('NP', 'PP'), 0.2)
     ],
-    'PP': [ (['IN', 'NP'], 1.0) ],
+    'PP': [ (('IN', 'NP'), 1.0) ],
     'VP': [
-        (['VP', 'PP'], 0.5),
-        (['VP', 'NP'], 0.4),
-        (['shot'], 0.03)
+        (('VP', 'PP'), 0.5),
+        (('VP', 'NP'), 0.4),
+        (('shot',), 0.03)
     ],
     'NN': [
-        (['shot'], 0.02),
-        (['elephant'], 0.03)
+        (('shot',), 0.02),
+        (('elephant',), 0.03)
     ],
-    'NNS': [ (['pajamas'], 0.02) ],
+    'NNS': [ (('pajamas',), 0.02) ],
     'DT': [
-        (['an'], 0.2),
-        (['his'], 0.1)
+        (('an',), 0.2),
+        (('his',), 0.1)
     ],
-    'IN': [ (['in'], 0.1) ]
+    'IN': [ (('in',), 0.1) ]
 }
 
 
