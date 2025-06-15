@@ -26,7 +26,7 @@ class GramaticaProbabilistica():
         # Crea taula triangular buida (aprofitem la propietat triangular de la taula CKY i ens estalviem memòria innecessària)
         taula = [[set() for _ in range(n - m)] for m in range(n)]
 
-        # Omplim la primera fila (cas base): terminals
+        # Omplim la primera longitud (cas base): terminals
         for col in range(n):
             paraula = frase[col]
             for no_terminal, produccions in self.gramatica.items():
@@ -38,36 +38,36 @@ class GramaticaProbabilistica():
                         taula[0][col].add((no_terminal, probabilitat, (paraula,), (0, col), None))
         
         # Omplim la resta de la taula (longitud 2 a n)
-        for fila in range(1, n):  # longitud de la subcadena
-            for diag in range(n - fila):
-                col = diag + fila
+        for longitud in range(1, n):  # longitud de la subcadena
+            for diag in range(n - longitud):
+                col = diag + longitud
 
                 # Provem totes les possibles divisions de la subcadena
-                for k in range(fila):       
+                for k in range(longitud):       
                     
-                    fila_dreta = fila - k - 1
-                    col_dreta = diag + k + 1
+                    long_dreta = longitud - k - 1
+                    inici_dreta = diag + k + 1
 
-                    part_diag = taula[k][diag]
-                    part_col = taula[fila_dreta][col_dreta]
+                    part_esq = taula[k][diag]
+                    part_dre = taula[long_dreta][inici_dreta]
                     # Si alguna de les dues parts és buida, no podem continuar
-                    if not part_diag or not part_col:
+                    if not part_esq or not part_dre:
                         continue
                     
                     # Comprovem totes les regles de la gramàtica per produccions binàries
-                    for no_terminal_diag in part_diag:
-                        for no_terminal_col in part_col:
+                    for no_terminal_diag in part_esq:
+                        for no_terminal_col in part_dre:
                             # Comprovem les produccions binàries (A -> BC)
                             clau = (no_terminal_diag[0], no_terminal_col[0])
                             if clau in self.regles_binaries:
                                 for valor_no_terminal, probabilitat in self.regles_binaries[clau]:
                                     # Comprovar si ja existeix aquest no-terminal en la cel·la
                                     existeix = False
-                                    for tupla_existent in taula[fila][diag]:
+                                    for tupla_existent in taula[longitud][diag]:
                                         if tupla_existent[0] == valor_no_terminal:
                                             # Si ja existeix, comparem probabilitats i mantenim el major
                                             if probabilitat * no_terminal_diag[1] * no_terminal_col[1] > tupla_existent[1]:
-                                                taula[fila][diag].remove(tupla_existent)
+                                                taula[longitud][diag].remove(tupla_existent)
                                                 break
                                             else:
                                                 existeix = True
@@ -76,7 +76,7 @@ class GramaticaProbabilistica():
                                         # Las coordenadas deben ser en formato original (inicio, fin)
                                         coord_izq = (diag, diag + k)
                                         coord_der = (diag + k + 1, col)
-                                        taula[fila][diag].add((valor_no_terminal, 
+                                        taula[longitud][diag].add((valor_no_terminal, 
                                                             probabilitat * no_terminal_diag[1] * no_terminal_col[1], 
                                                             (no_terminal_diag[0], no_terminal_col[0]), 
                                                             coord_izq, 
@@ -105,10 +105,10 @@ class GramaticaProbabilistica():
         else:
             self.arbre_gramatical = None
 
-    def _construir_arbre(self, taula: List[List[Set[Tuple[str, float, Tuple[str,str], Tuple[int, int]]]]], fila: int, col: int, no_terminal: str) -> dict:
+    def _construir_arbre(self, taula: List[List[Set[Tuple[str, float, Tuple[str,str], Tuple[int, int]]]]], longitud: int, col: int, no_terminal: str) -> dict:
         """
         Construeix l'arbre gramatical a partir de la taula triangular de CKY.
-        :param fila: Fila en la tabla triangular (longitud - 1)
+        :param longitud: longitud en la tabla triangular (longitud - 1)
         :param col: Columna en la tabla triangular (posición inicial)
         :param no_terminal: No terminal a buscar
         """
@@ -116,7 +116,7 @@ class GramaticaProbabilistica():
         millor_tupla = None
         millor_probabilitat = 0
         
-        for tupla in taula[fila][col]:
+        for tupla in taula[longitud][col]:
             if tupla[0] == no_terminal and tupla[1] > millor_probabilitat:
                 millor_tupla = tupla
                 millor_probabilitat = tupla[1]
@@ -124,7 +124,7 @@ class GramaticaProbabilistica():
         if millor_tupla is None:
             return None
         
-        if fila == 0:  # Caso terminal (fila 0 = longitud 1)
+        if longitud == 0:  # Caso terminal (longitud 0 = longitud 1)
             # tupla[2] es (palabra,) para terminales
             return {
                 'no_terminal': no_terminal, 
@@ -140,15 +140,15 @@ class GramaticaProbabilistica():
             
             # Convertir coordenadas originales a coordenadas triangulares
             # Para hijo izquierdo: (inicio_orig, fin_orig) -> (fin_orig - inicio_orig, inicio_orig)
-            fila_izq = coord_orig_izq[1] - coord_orig_izq[0]
+            longitud_izq = coord_orig_izq[1] - coord_orig_izq[0]
             col_izq = coord_orig_izq[0]
             
             # Para hijo derecho: (inicio_orig, fin_orig) -> (fin_orig - inicio_orig, inicio_orig)
-            fila_der = coord_orig_der[1] - coord_orig_der[0]
+            longitud_der = coord_orig_der[1] - coord_orig_der[0]
             col_der = coord_orig_der[0]
             
-            fill_esquerra = self._construir_arbre(taula, fila_izq, col_izq, millor_tupla[2][0])
-            fill_dreta = self._construir_arbre(taula, fila_der, col_der, millor_tupla[2][1])
+            fill_esquerra = self._construir_arbre(taula, longitud_izq, col_izq, millor_tupla[2][0])
+            fill_dreta = self._construir_arbre(taula, longitud_der, col_der, millor_tupla[2][1])
             
             return {
                 'no_terminal': no_terminal, 
@@ -353,3 +353,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+

@@ -33,27 +33,25 @@ class Gramatica():
                         taula[0][col].add(no_terminal)
         
         # Omplim la resta de la taula (longitud 2 a n)
-        for fila in range(1, n):  # longitud de la subcadena
-            for diag in range(n - fila):
-                col = diag + fila
-
+        for longitud in range(1, n):  # longitud de la subcadena
+            for col_esq in range(n - longitud): # inici de la subcadena
                 # Provem totes les possibles divisions de la subcadena
-                for k in range(fila):       
+                for fila_esq in range(longitud): # longitud de la part esquerra
                     
-                    fila_dreta = fila - k - 1
-                    col_dreta = diag + k + 1
+                    fila_dre = longitud - fila_esq - 1 # longitud de la part dreta
+                    col_dre = col_esq + fila_esq + 1 # inici de la part dreta
 
-                    part_diag = taula[k][diag]
-                    part_col = taula[fila_dreta][col_dreta]
+                    part_esq = taula[fila_esq][col_esq]
+                    part_dre = taula[fila_dre][col_dre]
                     # Si alguna de les dues parts és buida, no podem continuar
-                    if part_diag and part_col:
+                    if part_esq and part_dre:
                         # Comprovem totes les regles de la gramàtica per produccions binàries
-                        for no_terminal_diag in part_diag:
-                            for no_termina_col in part_col:
+                        for no_terminal_diag in part_esq:
+                            for no_termina_col in part_dre:
                                 # Comprovem les produccions binàries (A -> BC)
                                 clau = (no_terminal_diag, no_termina_col)
                                 if clau in self.regles_binaries:
-                                    taula[fila][diag].update(self.regles_binaries[clau])
+                                    taula[longitud][col_esq].update(self.regles_binaries[clau])
 
         return self.simbol_arrel in taula[n-1][0]
                 
