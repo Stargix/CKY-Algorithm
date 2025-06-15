@@ -159,31 +159,32 @@ class GramaticaProbabilistica():
         if millor_tupla is None:
             return None
         
-        if fila == 0:  # Cas terminal (fila 0 = longitud 1)
-            # tupla[2] és (paraula,) per a terminals
+        if fila == 0:  # Es compleix per les regles terminals
+            # La tupla conté (no_terminal, probabilitat, (simbol,), (inici, fi), None)
             return {
                 'no_terminal': no_terminal, 
                 'simbol': millor_tupla[2][0], 
                 'fill': None,
                 'probabilitat': millor_tupla[1]
             }
-        else:
-            # Cas no terminal: tupla[2] és (NT_esq, NT_dret)
+        
+        # Cas de regles no terminals
+        else: 
+            # la tupla conté (no_terminal, probabilitat, (fill_esquerre, fill_dret), (inici_esq, fi_esq), (inici_dre, fi_dre))
             # Necessitem convertir les coordenades originals a coordenades triangulars
-            coord_orig_esq = millor_tupla[3]  # (inici, fi) del fill esquerre
-            coord_orig_dret = millor_tupla[4]  # (inici, fi) del fill dret
+            coord_orig_esq = millor_tupla[3]
+            coord_orig_dre = millor_tupla[4]
             
-            # Convertir coordenades originals a coordenades triangulars
-            # Per al fill esquerre: (inici_orig, fi_orig) -> (fi_orig - inici_orig, inici_orig)
+            # Convertim les coordenades a longitud i inici
             fila_esq = coord_orig_esq[1] - coord_orig_esq[0]
             col_esq = coord_orig_esq[0]
             
-            # Per al fill dret: (inici_orig, fi_orig) -> (fi_orig - inici_orig, inici_orig)
-            fila_dret = coord_orig_dret[1] - coord_orig_dret[0]
-            col_dret = coord_orig_dret[0]
+            fila_dre = coord_orig_dre[1] - coord_orig_dre[0]
+            col_dre = coord_orig_dre[0]
             
+            # Construïm els fills esquerre i dret de l'arbre
             fill_esquerra = self._construir_arbre(taula, fila_esq, col_esq, millor_tupla[2][0])
-            fill_dreta = self._construir_arbre(taula, fila_dret, col_dret, millor_tupla[2][1])
+            fill_dreta = self._construir_arbre(taula, fila_dre, col_dre, millor_tupla[2][1])
             
             return {
                 'no_terminal': no_terminal, 
@@ -424,125 +425,3 @@ class GramaticaProbabilistica():
                 prods.append(f"{prod_str} ({probabilitat})")
             result.append(f"{no_terminal} -> {' | '.join(prods)}")
         return "\n".join(result)
-
-def create_grammar_g1():
-    """
-    Create the first example grammar G1 - CORREGIDA CON LISTAS
-    """
-    return {
-        'S': [(['a'], 0.3), (['X', 'A'], 0.2), (['A', 'X'], 0.4), (['b'], 0.1)],
-        'A': [(['R', 'B'], 1.0)],
-        'B': [(['A', 'X'], 0.5), (['b'], 0.3), (['a'], 0.2)],
-        'X': [(['a'], 1.0)],
-        'R': [(['X', 'B'], 1.0)]
-    }
-
-def create_grammar_g2():
-    """
-    Create the second example grammar G2 - CORREGIDA CON LISTAS
-    """
-    return {
-        'S': [(['A', 'B'], 0.4), (['C', 'D'], 0.3), (['C', 'B'], 0.2), (['B', 'B'], 0.1)],
-        'A': [(['B', 'C'], 0.7), (['a'], 0.3)],
-        'B': [(['A', 'C'], 0.6), (['b'], 0.4)],
-        'C': [(['D', 'D'], 0.8), (['b'], 0.2)],
-        'D': [(['B', 'A'], 1.0)]
-    }
-def create_grammar_g3():
-    """
-    Create the third example grammar G3:
-    S → AB | CD
-    A → aA | a
-    B → bB | b
-    C → cC | c
-    D → dD | d
-    """
-    return {
-        'S': [(['NP', 'VP'], 1.0)],  # S → NP VP
-        'NP': [(['Det', 'N'], 0.7), (['Det', 'AN'], 0.3)],  # NP → Det N | Det AN
-        'AN': [(['Adj', 'N'], 1.0)],  # AN → Adj N 
-        'VP': [(['V', 'NP'], 1.0)],  # VP → V NP
-        'Det': [(['els'], 1.0)],  # Det → els
-        'N': [(['carbassots'], 0.5), (['pardimolls'], 0.5)],  # N → carbassots | pardimolls
-        'Adj': [(['millors'], 1.0)],  # Adj → millors
-        'V': [(['són'], 1.0)]  # V → són
-    }
-
-plh_probabilitat = {
-    'S': [ (['NP', 'VP'], 1.0) ],
-    'NP': [
-        (['DT', 'NN'], 0.4),
-        (['DT', 'NNS'], 0.3),
-        (['groucho'], 0.01),
-        (['shot'], 0.03),
-        (['elephant'], 0.04),
-        (['NP', 'PP'], 0.2)
-    ],
-    'PP': [ (['IN', 'NP'], 1.0) ],
-    'VP': [
-        (['VP', 'PP'], 0.5),
-        (['VP', 'NP'], 0.4),
-        (['shot'], 0.03)
-    ],
-    'NN': [
-        (['shot'], 0.02),
-        (['elephant'], 0.03)
-    ],
-    'NNS': [ (['pajamas'], 0.02) ],
-    'DT': [
-        (['an'], 0.2),
-        (['his'], 0.1)
-    ],
-    'IN': [ (['in'], 0.1) ]
-}
-
-
-
-def main():
-    # Prova amb la primera gramàtica (G1)
-    print("\nProva amb la gramàtica G1")
-    
-    parser = GramaticaProbabilistica(create_grammar_g1(), simbol_arrel='S')
-    print(parser)
-    frases_g1 = ["a", "b", "aa", "ab", "ba", "aba", "aaa", "bab", "abab"]
-    for frase in frases_g1:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_pcky(frase))
-    
-    # Prova amb la segona gramàtica (G2)
-    print("\nProva amb la gramàtica G2")
-    
-    parser = GramaticaProbabilistica(create_grammar_g2(),  simbol_arrel='S')
-    print(parser)
-    frases_g2 = ["ab", "bb", "a", "b", "abb", "bab", "abab", "bbbb", "aabb","abab"]
-    for frase in frases_g2:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_pcky(frase))
-
-    parser.display_arbre()
-
-    # Prova amb la gramàtica de l'exemple
-    print("\nProva amb la gramàtica de l'exemple")
-    parser = GramaticaProbabilistica(create_grammar_g3(), simbol_arrel='S')
-    print(parser)
-    frases_xd = ["els carbassots són els millors pardimolls"]
-
-    for frase in frases_xd:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_pcky(frase.split()))
-    parser.display_arbre()
-
-    
-    parser = GramaticaProbabilistica(plh_probabilitat, simbol_arrel='S')
-    print("\nProva amb la gramàtica PLH")
-    print(parser)
-    frases_plh = ["an elephant in pajamas", "his shot in pajamas", "groucho shot an elephant", "shot in pajamas", "groucho shot an elephant in his pajamas"]
-
-    for frase in frases_plh:
-        print(f"Frase: '{frase}'", end=" -> ")
-        print(parser.algoritme_pcky(frase.split()))
-    parser.display_arbre()
-
-
-if __name__ == "__main__":
-    main()

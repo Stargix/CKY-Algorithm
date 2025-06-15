@@ -58,8 +58,8 @@ def test_pcky():
         for frase in paraules:
             frase_junt = frase
             if isinstance(frase, list):
-                frase = " ".join(frase)
-            print(f"Frase: '{frase}'", end=" -> ")
+                frase_junt = " ".join(frase)
+            print(f"Frase: '{frase_junt}'", end=" -> ")
             resultat = GramProb.algoritme_pcky(frase)
             print(resultat)
 

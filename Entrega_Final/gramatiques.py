@@ -86,12 +86,15 @@ G9 = {
      }
 
 G10 = {
-        "S": [(["a"], 0.2), (["X", "A"], 0.3), (["A", "X"], 0.3), (["b"], 0.2)],
-        "A": [(["R", "B"], 1.0)],
-        "B": [(["A", "X"], 0.4), (["b"], 0.3), (["a"], 0.3)],
-        "X": [(["a"], 1.0)],
-        "R": [(["X", "B"], 1.0)]
-      }
+        'S': [(['NP', 'VP'], 1.0)],
+        'NP': [(['Det', 'N'], 0.7), (['Det', 'AN'], 0.3)],
+        'AN': [(['Adj', 'N'], 1.0)],
+        'VP': [(['V', 'NP'], 1.0)],
+        'Det': [(['les'], 1.0)],
+        'N': [(['llistes'], 0.5), (['estructures'], 0.5)],
+        'Adj': [(['millors'], 1.0)],
+        'V': [(['són'], 1.0)]
+     }
 
 # G11 extreta de l'exàmen final de PLH del 2023
 
@@ -158,4 +161,4 @@ frases_lst, frases_2023, frases_2024 = map(processa_frases, [frases_lst, frases_
 
 gramatiques_simples = [(G1, frases_ab), (G2, frases_ab), (G3, frases_ab), (G4, frases_2023)]
 gramatiques_no_FNC = [(G5, frases_ab), (G6, frases_ab), (G7, frases_lst), (G8, frases_2024)]
-gramatiques_probabilistes = [(G9, frases_ab), (G10, frases_ab), (G11, frases_2023), (G12, frases_2024)]
+gramatiques_probabilistes = [(G9, frases_ab), (G10, frases_lst), (G11, frases_2023), (G12, frases_2024)]
