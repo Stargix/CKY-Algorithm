@@ -46,16 +46,14 @@ class Gramatica():
                     part_diag = taula[k][diag]
                     part_col = taula[fila_dreta][col_dreta]
                     # Si alguna de les dues parts és buida, no podem continuar
-                    if not part_diag or not part_col:
-                        continue
-                    
-                    # Comprovem totes les regles de la gramàtica per produccions binàries
-                    for no_terminal_diag in part_diag:
-                        for no_termina_col in part_col:
-                            # Comprovem les produccions binàries (A -> BC)
-                            clau = (no_terminal_diag, no_termina_col)
-                            if clau in self.regles_binaries:
-                                taula[fila][diag].update(self.regles_binaries[clau])
+                    if part_diag and part_col:
+                        # Comprovem totes les regles de la gramàtica per produccions binàries
+                        for no_terminal_diag in part_diag:
+                            for no_termina_col in part_col:
+                                # Comprovem les produccions binàries (A -> BC)
+                                clau = (no_terminal_diag, no_termina_col)
+                                if clau in self.regles_binaries:
+                                    taula[fila][diag].update(self.regles_binaries[clau])
 
         return self.simbol_arrel in taula[n-1][0]
                 
