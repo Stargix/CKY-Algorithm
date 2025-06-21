@@ -2,19 +2,6 @@
 
 A comprehensive implementation of the CKY algorithm for context-free grammar parsing, including extensions for CNF conversion and probabilistic parsing.
 
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Examples](#examples)
-- [Extensions](#extensions)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-
 ## 🔍 Overview
 
 This project implements the **CKY (Cocke-Kasami-Younger) algorithm**, a dynamic programming algorithm used for parsing context-free grammars. The implementation includes several advanced features and optimizations for educational and practical use.
